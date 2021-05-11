@@ -1,6 +1,6 @@
 # TERRAFORM
 
-![ANSIBLE_1](./terraform_scheme.png)
+![SCHEME](./terraform_scheme.png)
 
 Imagines that we are going to use to create our instances with terraform:
 
@@ -9,7 +9,7 @@ Imagines that we are going to use to create our instances with terraform:
 
 ## Terraform and benefits
 
-Is a __orhcestration__ tool. Is part of IAC, specifically dealing with orchestration of infrastructure in the cloud. We need orchestration tools and scripts that talk to the cloud to pull them together into the architecture, so Terraform will do this work for us.
+Is a __orchestration__ tool. Is part of IAC, specifically dealing with orchestration of infrastructure in the cloud. We need orchestration tools and scripts that talk to the cloud to pull them together into the architecture, so Terraform will do this work for us.
 
 Terraform is an open-source infrastructure as code software tool that enables you to safely and predictably create, change, and improve infrastructure. Terraform codifies cloud APIs into declarative configuration files.
 
@@ -29,6 +29,10 @@ Because Terraform uses a simple syntax, can provision infrastructure across mult
 
 5. Ease of use.
 
+6. Simplicity, it makes my life easier. It does a lot of work for us behind, in the background.
+
+7. Independent, so you can use it in any provider.
+
 __So can we do with it?__
 
 Terraform is a tool for building, changing, and versioning infrastructure safely and efficiently. Terraform can manage existing and popular service providers as well as custom in-house solutions. Configuration files describe to Terraform the components needed to run a single application or your entire datacenter.
@@ -37,11 +41,88 @@ Terraform applies to multi-cloud scenarios, where similar infrastructure is depl
 
 Automated infrastructure management, so terraform can create configuration file templates to define, provision, and configure ECS resources in a repeatable and predictable manner, reducing deployment and management errors resulting from human intervention.
 
+We can use terraform for private cloud, like vagrant, or for public cloud, like AWS, or make the combination of both of them and create a Hybrid Cloud.
+
 Basically, infrastrucute as code, you can use code to manage and maintain resources. It allows you to store the infrastructure status, so that you can track the changes in different components of the system (infrastructure as code) and share these configurations with others.
 
 __Difference between ansible and terraform__
 
 Although ansible can be used both, for configuration management and for orchestration, with terraform we can see the ease of use with a simple language to interpret, that in so few lines of code and with the image of the machine, we can create a new instance in AWS without having to specify many configurations.
+
+![DIFFERENCE](./terraform.png)
+
+__Safety__
+
+Terraform enables you to embed cloud security earlier and leverage automation and code to secure it. By scanning your Terraform modules earlier in the development lifecycle you can actually prevent misconfigurations from being deployed.
+
+All the methods of trying to connect in AWS, terraform check that (in your localhost, check that you have your variables prepared with their values), but AWS needs to verify also, every single request needs to be verified before deploying anything. It check that the key access matches with your account using the `.tf` file. So that's why it is security. Con lo cual podemos ver el gran beneficio de usar distinto provedores y con cada uno de ellos comprueba el accesso con la key. Nos ayuda hacer nuestra vida mas facil, al igual que al cliente, ahorramos tiempo y dinero.
+
+It does the same for any provider, only we have to change the configuration, the value of the tags.
+
+__AWS GovCloud (US) Regions__
+
+AWS GovCloud (US) gives government customers and their partners the flexibility to architect secure cloud solutions.
+
+AWS GovCloud (US-East) and (US-West) Regions are operated by employees who are U.S. citizens on U.S. soil. AWS GovCloud (US) is only accessible to U.S. entities and root account holders who pass a screening process. Customers must confirm that they will only use a U.S. person (green card holder or citizen as defined by the U.S. Department of State) to manage and access root account keys to these regions.
+
+Protect sensitive unclassified data files with server-side encryption in Amazon S3.
+
+Limit access to sensitive data by individual, time, and location and restrict which API calls users are able to make with identity federation, easy key rotation, and other powerful access control testing tools that are available.
+
+In AWS US, they have data centres we can't buy.
+Renting the services - pay as you go
+Created gov cloud - for government sector only.
+
+Five years ago, companies wanted to migrate to the cloud.
+Secret services were not willing to integrate due to security.
+
+Issues:
+- Premises goes on fire
+- Stealing data (hard drives)
+- Physical security only
+
+AWS created Gov cloud to solve these issues.
+
+### Private Cloud, Public Cloud and Hybrid Cloud
+
+It allows us to use terraform at any cloud level:
+
+![DIFFERENCE](./terraform_cloud.jpg)
+
+__Public Cloud__
+
+![PUBLIC](./terraform_public.png)
+
+- Clouds that are hosted and maintained by a cloud computing provider.
+- Use case: An image hosting website wants to host a collection of publicly accessible images. backup, disaster recovery, archiving, audit and security logs, etc. High-volume storage with low throughput/performance or infrequent access. Large volumes of storage with low-performance requirements, or infrequent access requirements are well-suited to the Public Cloud.
+- Scalability and no Capital cost.
+
+__Private Cloud__
+
+![PRIVATE](./terraform_private.png)
+
+- Clouds hosted and maintained by the user.
+- Use case: are used for applications for sensitive data, including financial institutions or goverments. Typically serves the needs of a single organization and is often purpose-built to fit a particular infrastructure and use case. It may be hosted on-premises or in a colocation data center. A government department wants to store sensitive information in a convenient to distribute format.
+- Secure, scaling, flexibility and customization.
+
+__Hybrid Cloud__
+
+![HYBRID](./terraform_scheme.png)
+
+- A combination of the above two types.
+- Use case: migrating workloads to and from the cloud, high Availability and Disaster Recovery, cloud as data center extension. The hybrid cloud is used when storage of sensitive data is required, however the services offered by cloud providers are also needed. A software development company wants to rapidly scale their business because of a spike in server load from active users and make sure that everything is stored safety.
+- Greater flexibility, manageable security, advantage of public cloud while doing heavy workloads and the information is secure as private cloud is incorporated within the same.
+
+Summary:
+
+![CLOUD](./public-private-hybrid-clouds.png)
+![FEATURES](./Cloud_Infrastructure.png)
+
+### IaC tools
+
+![TOOLS](./iac_tools.png)
+
+CI/CD Tools: Jenkins, CircleCI, TeamCity, Bamboo, GitLab.
 
 ## Terraform most used commands
 
