@@ -252,7 +252,7 @@ resource "aws_vpc" "terraform_vpc_code_test"{
 }
 ````
 
-__5: Create and assign a subnet to a VPC__
+__5: Create and assign a Subnet to a VPC__
 
 We will use the tag `aws_subnet`.
 
@@ -260,6 +260,7 @@ We will use the tag `aws_subnet`.
 resource "aws_subnet" "subnet_vpc_code_test" {
   vpc_id            = aws_vpc.terraform_vpc_code_test.id
   cidr_block        = "33.33.1.0/24"
+  availability_zone = "eu-west-1a"
 
   tags = {
       Name = "eng84_jose_subnet_terraform"
@@ -270,7 +271,6 @@ resource "aws_subnet" "subnet_vpc_code_test" {
 To know more about how to use terraform, [link](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/default_vpc).
 
 __Applying DRY with Terraform__
-
 
 - Let's create a file called `variable.tf` to create variables so we could use and resue them in our main.tf file
 - `var.name_of_resource`
@@ -285,18 +285,23 @@ variable "vpc_id" {
 }
 
 variable "name" {
-
-  default = "shahrukh_terraform_variable_code_testing"
+  default = "eng84_jose_terraform_nodeapp"
 }
 
 variable "webapp_ami_id" {
-
-  default = "ami-042af9229265c27d0"
+  default = "ami-01358d6e34043f36c"
 }
 
-variable "aws_subnet"{
+variable "aws_vpc" {
+  default = "eng84_jose_terraform_vpc"
+}
 
-    default = "terraform_code_testing_with_subnet_var"
+variable "aws_subnet" {
+  default = "eng84_jose_terraform_subnet"
+}
+
+variable "aws_sg" {
+  default = "eng84_jose_terraform_sg"
 }
 
 variable "aws_key_name" {
@@ -310,11 +315,46 @@ variable "aws_key_path" {
 }
 ````
 
-### Task
+__6: Create and assign a Security Group to a VPC__
+
+We will use the tag `aws_security_group`.
+
+````
+resource "aws_security_group" "jose_terraform_code_test_sg" {
+ name = "jose_terraform_code_test_sg_app"
+ description = "app security group"
+ vpc_id = aws_vpc.terraform_vpc_code_test.id
+
+ # Inbound rules for our app
+ # Inbound rules code block:
+ ingress {
+  from_port = "80" # for our to launch in the browser
+  to_port = "80" # for our to launch in the browser
+  protocol = "tcp"
+  cidr_blocks = ["0.0.0.0/0"] # allow all
+ }
+ # Inbound rules code block ends
+
+ # Outbound rules code block
+ egress{
+  from_port = 0
+  to_port = 0
+  protocol = "-1" # allow all
+  cidr_blocks = ["0.0.0.0/0"]
+ }
+
+ tags = {
+  Name = "${var.aws_sg}"
+ }
+ # Outbound rules code block ends
+}
+````
+
+### Tasks
 
 __1. Iteration:__
 
-We need to follow these steps:
+In this first iteration we are going to implement what we have learned previously. For this we have to follow the following steps so that in the end the instance can be created and assigned to the Security Group, Subnet and VPC created.
 
 - Create a VPC.
 - Create and assign a Subnet to the VPC.
@@ -405,4 +445,153 @@ resource "aws_instance" "app_instance"{
 }
 
 # ------------------ 1. Iteration ends------------------
+````
+
+__2. Iteration:__
+
+Launch the app using the AMI of the instance that has the app available and running correctly.
+
+We need to repeat the same steps like before, but we need to add the rest of the network configuration that we manually did using AWS interface:
+
+- Create internet gate way and attach it to our VPC.
+- Create public route table and associate it with app subnet.
+- Create the script which we will execute to run the app.
+- Load this script and inject it into our instance.
+- DOD: node-app working in our app instance with terraform script.
+
+````
+# Create a VPC
+resource "aws_vpc" "jose_terraform_vpc"{
+ cidr_block = var.aws_vpc_cidr
+ instance_tenancy = "default"
+
+ tags = {
+   Name = "${var.aws_vpc}"
+ }
+}
+
+# Create an internet gateway
+resource "aws_internet_gateway" "jose_terraform_igw" {
+  vpc_id = aws_vpc.jose_terraform_vpc.id
+
+  tags = {
+    Name = var.aws_igw
+  }
+}
+
+# Editing the main Route Table
+resource "aws_default_route_table" "jose_terraform_rt_public" {
+  default_route_table_id = aws_vpc.jose_terraform_vpc.default_route_table_id
+
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.jose_terraform_igw.id
+  }
+
+  tags = {
+    Name = var.aws_public_rt
+  }
+}
+
+# Create and assign a subnet to the VPC
+# Public
+resource "aws_subnet" "jose_terraform_public_subnet" {
+  vpc_id = aws_vpc.jose_terraform_vpc.id
+  cidr_block = var.aws_public_cidr
+  availability_zone = "eu-west-1a"
+
+  tags = {
+    Name = "${var.aws_subnet_public}"
+  }
+}
+
+# Associate route tables with the subnet
+resource "aws_route_table_association" "jose_terraform_asoc1" {
+  subnet_id = aws_subnet.jose_terraform_public_subnet.id
+  route_table_id = aws_vpc.jose_terraform_vpc.default_route_table_id
+}
+
+# Security group for app
+resource "aws_security_group" "jose_terraform_public_sg" {
+ name = var.aws_public_sg
+ description = "app security group"
+ vpc_id = aws_vpc.jose_terraform_vpc.id
+
+ # Inbound rules for our app
+ # Inbound rules code block:
+ ingress {
+  from_port = "80" # for our to launch in the browser
+  to_port = "80" # for our to launch in the browser
+  protocol = "tcp"
+  cidr_blocks = ["0.0.0.0/0"] # allow all
+ }
+ # Inbound rules code block ends
+
+ # Outbound rules code block
+ egress{
+  from_port = 0
+  to_port = 0
+  protocol = "-1" # allow all
+  cidr_blocks = ["0.0.0.0/0"]
+ }
+
+ # Outbound rules code block ends
+}
+
+resource "aws_security_group_rule" "ssh" {
+  type              = "ingress"
+  from_port         = 22
+  to_port           = 22
+  protocol          = "tcp"
+  cidr_blocks       = [var.my_ip]
+  security_group_id = aws_security_group.jose_terraform_public_sg.id
+}
+
+# Creating APP instance
+resource "aws_instance" "app_instance"{
+  # add the AMI id between "" as below
+  ami = var.webapp_ami_id
+
+  # Let's add the type of instance we would like launch
+  instance_type = "t2.micro"
+
+  # Subnet
+  subnet_id = aws_subnet.jose_terraform_public_subnet.id
+
+  private_ip = var.webapp_ip
+
+  # Security group
+  vpc_security_group_ids = [aws_security_group.jose_terraform_public_sg.id]
+
+  # Do we need to enable public IP for our app
+  associate_public_ip_address = true
+
+  key_name = var.key
+
+  # Tags is to give name to our instance
+  tags = {
+    Name = "${var.aws_webapp}"
+  }
+
+  provisioner "file" {
+    source      = "./scripts/init.sh"
+    destination = "/home/ubuntu/init.sh"
+  }
+
+  # Change permissions on bash script and execute.
+  provisioner "remote-exec" {
+    inline = [
+      "chmod +x /home/ubuntu/init.sh",
+      "bash /home/ubuntu/init.sh",
+    ]
+  }
+
+  connection {
+    type        = "ssh"
+    user        = "ubuntu"
+    private_key = file(var.key_path)
+    host        = self.public_ip
+  }
+}
+
 ````

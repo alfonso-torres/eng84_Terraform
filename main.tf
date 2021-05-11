@@ -14,8 +14,8 @@ provider "aws"{
 # ------------------ 1. Iteration ------------------
 
 # Create a VPC
-resource "aws_vpc" "terraform_vpc_code_test"{
- cidr_block = "33.33.0.0/16"
+resource "aws_vpc" "jose_terraform_vpc"{
+ cidr_block = var.aws_vpc_cidr
  instance_tenancy = "default"
 
  tags = {
@@ -23,21 +23,77 @@ resource "aws_vpc" "terraform_vpc_code_test"{
  }
 }
 
-# Create and assign a subnet to the VPC
-resource "aws_subnet" "subnet_vpc_code_test" {
-  vpc_id = aws_vpc.terraform_vpc_code_test.id
-  cidr_block = "33.33.1.0/24"
-  availability_zone = "eu-west-1a"
+# Create an internet gateway
+resource "aws_internet_gateway" "jose_terraform_igw" {
+  vpc_id = aws_vpc.jose_terraform_vpc.id
 
   tags = {
-    Name = "${var.aws_subnet}"
+    Name = var.aws_igw
   }
 }
 
-resource "aws_security_group" "jose_terraform_code_test_sg" {
- name = "jose_terraform_code_test_sg_app"
+# Editing the main Route Table
+resource "aws_default_route_table" "jose_terraform_rt_public" {
+  default_route_table_id = aws_vpc.jose_terraform_vpc.default_route_table_id
+
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.jose_terraform_igw.id
+  }
+
+  tags = {
+    Name = var.aws_public_rt
+  }
+}
+
+# Creating Private Route Table
+resource "aws_route_table" "jose_terraform_rt_private" {
+  vpc_id = aws_vpc.jose_terraform_vpc.id
+
+  tags = {
+    Name = var.aws_private_rt
+  }
+}
+
+# Create and assign a subnet to the VPC
+# Public
+resource "aws_subnet" "jose_terraform_public_subnet" {
+  vpc_id = aws_vpc.jose_terraform_vpc.id
+  cidr_block = var.aws_public_cidr
+  availability_zone = "eu-west-1a"
+
+  tags = {
+    Name = "${var.aws_subnet_public}"
+  }
+}
+
+# Private
+resource "aws_subnet" "jose_terraform_private_subnet" {
+  vpc_id = aws_vpc.jose_terraform_vpc.id
+  cidr_block = var.aws_private_cidr
+  availability_zone = "eu-west-1a"
+
+  tags = {
+    Name = "${var.aws_subnet_private}"
+  }
+}
+
+# Associate route tables with both subnets (Public and Private)
+resource "aws_route_table_association" "jose_terraform_asoc1" {
+  subnet_id = aws_subnet.jose_terraform_public_subnet.id
+  route_table_id = aws_vpc.jose_terraform_vpc.default_route_table_id
+}
+
+resource "aws_route_table_association" "jose_terraform_asoc2" {
+  subnet_id = aws_subnet.jose_terraform_private_subnet.id
+  route_table_id = aws_route_table.jose_terraform_rt_private.id
+}
+
+# Security group for app
+resource "aws_security_group" "jose_terraform_public_sg" {
+ name = var.aws_public_sg
  description = "app security group"
- vpc_id = aws_vpc.terraform_vpc_code_test.id
+ vpc_id = aws_vpc.jose_terraform_vpc.id
 
  # Inbound rules for our app
  # Inbound rules code block:
@@ -57,13 +113,76 @@ resource "aws_security_group" "jose_terraform_code_test_sg" {
   cidr_blocks = ["0.0.0.0/0"]
  }
 
- tags = {
-  Name = "${var.aws_sg}"
- }
  # Outbound rules code block ends
 }
 
-# Create and assign an instance to the subnet
+resource "aws_security_group_rule" "ssh" {
+  type              = "ingress"
+  from_port         = 22
+  to_port           = 22
+  protocol          = "tcp"
+  cidr_blocks       = [var.my_ip]
+  security_group_id = aws_security_group.jose_terraform_public_sg.id
+}
+
+# Security group for db
+resource "aws_security_group" "jose_terraform_private_sg" {
+  name = var.aws_private_sg
+  description = "db security group"
+  vpc_id = aws_vpc.jose_terraform_vpc.id
+
+  ingress {
+    from_port         = "22"
+    to_port           = "22"
+    protocol          = "tcp"
+    cidr_blocks       = [var.my_ip]
+  }
+
+  egress {
+    from_port = "0"
+    to_port = "0"
+    protocol = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+resource "aws_security_group_rule" "vpc_access" {
+  type              = "ingress"
+  from_port         = 0
+  to_port           = 0
+  protocol          = "-1"
+  cidr_blocks       = [var.aws_public_cidr]
+  security_group_id = aws_security_group.jose_terraform_private_sg.id
+}
+
+# Creating DB instance
+resource "aws_instance" "db_instance"{
+  # add the AMI id between "" as below
+  ami = var.db_ami_id
+
+  # Let's add the type of instance we would like launch
+  instance_type = "t2.micro"
+
+  # Subnet
+  subnet_id = aws_subnet.jose_terraform_private_subnet.id
+
+  private_ip = var.db_ip
+
+  # Security group
+  vpc_security_group_ids = [aws_security_group.jose_terraform_private_sg.id]
+
+  # Do we need to enable public IP for our app
+  associate_public_ip_address = true
+
+  key_name = var.key
+
+  # Tags is to give name to our instance
+  tags = {
+    Name = "${var.aws_db}"
+  }
+}
+
+# Creating APP instance
 resource "aws_instance" "app_instance"{
   # add the AMI id between "" as below
   ami = var.webapp_ami_id
@@ -72,18 +191,44 @@ resource "aws_instance" "app_instance"{
   instance_type = "t2.micro"
 
   # Subnet
-  subnet_id = aws_subnet.subnet_vpc_code_test.id
+  subnet_id = aws_subnet.jose_terraform_public_subnet.id
+
+  private_ip = var.webapp_ip
 
   # Security group
-  vpc_security_group_ids = [aws_security_group.jose_terraform_code_test_sg.id]
+  vpc_security_group_ids = [aws_security_group.jose_terraform_public_sg.id]
 
   # Do we need to enable public IP for our app
   associate_public_ip_address = true
 
+  key_name = var.key
+
   # Tags is to give name to our instance
   tags = {
-    Name = "${var.name}"
+    Name = "${var.aws_webapp}"
   }
+
+  provisioner "file" {
+    source      = "./scripts/init.sh"
+    destination = "/home/ubuntu/init.sh"
+  }
+
+  # Change permissions on bash script and execute.
+  provisioner "remote-exec" {
+    inline = [
+      "chmod +x /home/ubuntu/init.sh",
+      "bash /home/ubuntu/init.sh",
+    ]
+  }
+
+  connection {
+    type        = "ssh"
+    user        = "ubuntu"
+    private_key = file(var.key_path)
+    host        = self.public_ip
+  }
+
+  depends_on = [aws_instance.db_instance]
 }
 
 # ------------------ 1. Iteration ends------------------
