@@ -33,7 +33,7 @@ Because Terraform uses a simple syntax, can provision infrastructure across mult
 
 7. Independent, so you can use it in any provider.
 
-__So can we do with it?__
+__So what can we do with it?__
 
 Terraform is a tool for building, changing, and versioning infrastructure safely and efficiently. Terraform can manage existing and popular service providers as well as custom in-house solutions. Configuration files describe to Terraform the components needed to run a single application or your entire datacenter.
 
