@@ -268,3 +268,141 @@ resource "aws_subnet" "subnet_vpc_code_test" {
 ````
 
 To know more about how to use terraform, [link](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/default_vpc).
+
+__Applying DRY with Terraform__
+
+
+- Let's create a file called `variable.tf` to create variables so we could use and resue them in our main.tf file
+- `var.name_of_resource`
+
+````
+# Creating variables to apply DRY using Terraform variable.tf
+# These variables can be called in our main.tf
+
+variable "vpc_id" {
+
+  default = "vpc-07e47e9d90d2076da"
+}
+
+variable "name" {
+
+  default = "shahrukh_terraform_variable_code_testing"
+}
+
+variable "webapp_ami_id" {
+
+  default = "ami-042af9229265c27d0"
+}
+
+variable "aws_subnet"{
+
+    default = "terraform_code_testing_with_subnet_var"
+}
+
+variable "aws_key_name" {
+
+    default = "name of your file"
+}
+
+variable "aws_key_path" {
+
+    default = "path for your .pem or .pub file"
+}
+````
+
+### Task
+
+__1. Iteration:__
+
+We need to follow these steps:
+
+- Create a VPC.
+- Create and assign a Subnet to the VPC.
+- Create and assign a Security Group to the VPC.
+- Create annd assign a Instance to the Subnet and Security Group.
+
+````
+# Provider is a keyword in Terraform to define the name of cloud provider
+
+provider "aws"{
+# define the region to launch the ec2 instance in Ireland	
+	region = "eu-west-1"
+}
+
+# ------------------ 1. Iteration ------------------
+
+# Create a VPC
+resource "aws_vpc" "terraform_vpc_code_test"{
+ cidr_block = "33.33.0.0/16"
+ instance_tenancy = "default"
+
+ tags = {
+   Name = "${var.aws_vpc}"
+ }
+}
+
+# Create and assign a subnet to the VPC
+resource "aws_subnet" "subnet_vpc_code_test" {
+  vpc_id = aws_vpc.terraform_vpc_code_test.id
+  cidr_block = "33.33.1.0/24"
+  availability_zone = "eu-west-1a"
+
+  tags = {
+    Name = "${var.aws_subnet}"
+  }
+}
+
+resource "aws_security_group" "jose_terraform_code_test_sg" {
+ name = "jose_terraform_code_test_sg_app"
+ description = "app security group"
+ vpc_id = aws_vpc.terraform_vpc_code_test.id
+
+ # Inbound rules for our app
+ # Inbound rules code block:
+ ingress {
+  from_port = "80" # for our to launch in the browser
+  to_port = "80" # for our to launch in the browser
+  protocol = "tcp"
+  cidr_blocks = ["0.0.0.0/0"] # allow all
+ }
+ # Inbound rules code block ends
+
+ # Outbound rules code block
+ egress{
+  from_port = 0
+  to_port = 0
+  protocol = "-1" # allow all
+  cidr_blocks = ["0.0.0.0/0"]
+ }
+
+ tags = {
+  Name = "${var.aws_sg}"
+ }
+ # Outbound rules code block ends
+}
+
+# Create and assign an instance to the subnet
+resource "aws_instance" "app_instance"{
+  # add the AMI id between "" as below
+  ami = var.webapp_ami_id
+
+  # Let's add the type of instance we would like launch
+  instance_type = "t2.micro"
+
+  # Subnet
+  subnet_id = aws_subnet.subnet_vpc_code_test.id
+
+  # Security group
+  vpc_security_group_ids = [aws_security_group.jose_terraform_code_test_sg.id]
+
+  # Do we need to enable public IP for our app
+  associate_public_ip_address = true
+
+  # Tags is to give name to our instance
+  tags = {
+    Name = "${var.name}"
+  }
+}
+
+# ------------------ 1. Iteration ends------------------
+````
