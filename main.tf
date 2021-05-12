@@ -146,7 +146,7 @@ resource "aws_security_group" "jose_terraform_private_sg" {
   }
 }
 
-resource "aws_security_group_rule" "vpc_access" {
+resource "aws_security_group_rule" "app_access" {
   type              = "ingress"
   from_port         = 0
   to_port           = 0
