@@ -7,6 +7,16 @@ Imagines that we are going to use to create our instances with terraform:
 - App ami id: ami-01358d6e34043f36c
 - Db ami id: ami-0486e8ec336543ed5
 
+### Table of Contents
+
+- [Terraform and benefits](#terraform-and-benefits)
+- [Private Cloud, Public Cloud and Hybrid Cloud](#private-cloud,-public-cloud-and-hybrid-cloud)
+- [IaC tools](#iac-tools)
+- [Terraform most used commands](#terraform-most-used-commands)
+- [Who is using Terraform](#who-is-using-terraform)
+- [Terraform to launch ec2 with VPC, subnets, SG services of AWS](#terraform-to-launch-ec2-with-vpc,-subnets,-sg-services-of-aws)
+- [Tasks](#tasks)
+
 ## Terraform and benefits
 
 Is a __orchestration__ tool. Is part of IAC, specifically dealing with orchestration of infrastructure in the cloud. We need orchestration tools and scripts that talk to the cloud to pull them together into the architecture, so Terraform will do this work for us.
@@ -83,7 +93,7 @@ Issues:
 
 AWS created Gov cloud to solve these issues.
 
-### Private Cloud, Public Cloud and Hybrid Cloud
+## Private Cloud, Public Cloud and Hybrid Cloud
 
 It allows us to use terraform at any cloud level:
 
@@ -118,7 +128,7 @@ Summary:
 ![CLOUD](./public-private-hybrid-clouds.png)
 ![FEATURES](./Cloud_Infrastructure.png)
 
-### IaC tools
+## IaC tools
 
 ![TOOLS](./iac_tools.png)
 
@@ -153,7 +163,7 @@ terraform destroy
 - Delivery Hero
 - LaunchDarkly
 
-### Terraform to launch ec2 with VPC, subnets, SG services of AWS
+## Terraform to launch ec2 with VPC, subnets, SG services of AWS
 
 Let's see what are the steps:
 
@@ -350,7 +360,7 @@ resource "aws_security_group" "jose_terraform_code_test_sg" {
 }
 ````
 
-### Tasks
+## Tasks
 
 __1. Iteration:__
 
