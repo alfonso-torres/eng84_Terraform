@@ -10,11 +10,11 @@ Imagines that we are going to use to create our instances with terraform:
 ### Table of Contents
 
 - [Terraform and benefits](#terraform-and-benefits)
-- [Private Cloud, Public Cloud and Hybrid Cloud](#private-cloud,-public-cloud-and-hybrid-cloud)
+- [Private Cloud, Public Cloud and Hybrid Cloud](#private-cloud-public-cloud-and-hybrid-cloud)
 - [IaC tools](#iac-tools)
 - [Terraform most used commands](#terraform-most-used-commands)
 - [Who is using Terraform](#who-is-using-terraform)
-- [Terraform to launch ec2 with VPC, subnets, SG services of AWS](#terraform-to-launch-ec2-with-vpc,-subnets,-sg-services-of-aws)
+- [Terraform to launch ec2 with VPC, subnets, SG services of AWS](#terraform-to-launch-ec2-with-vpc-subnets-sg-services-of-aws)
 - [Tasks](#tasks)
 
 ## Terraform and benefits

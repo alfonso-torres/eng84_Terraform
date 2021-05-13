@@ -7,8 +7,8 @@
 # Provider is a keyword in Terraform to define the name of cloud provider
 
 provider "aws"{
-# define the region to launch the ec2 instance in Ireland	
-	region = "eu-west-1"
+# define the region to launch the ec2 instance in Ireland 
+  region = "eu-west-1"
 }
 
 # ------------------ 1. Iteration ------------------
